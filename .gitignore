@@ -1,0 +1,37 @@
+# dependencies
+/node_modules
+/.pnpm-store
+
+# next.js build output
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# C++ build artifacts
+*.o
+*.obj
+*.exe
+!Launcher.exe
+!HollowLauncher.exe
+!IntelService.exe
+!IntelHelper.exe
+licenses.db
+license.key
