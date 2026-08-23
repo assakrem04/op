@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateKey } from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
 
@@ -9,8 +8,45 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+// Helper: read file as Node.js Buffer and return proper binary response
+function servePayloadFile(filename: string) {
+  const filePath = path.join(process.cwd(), 'payloads', filename);
+  
+  // Try multiple possible locations
+  const possiblePaths = [
+    filePath,
+    path.join(__dirname, '../payloads', filename),
+    path.join(process.cwd(), '..', 'payloads', filename),
+  ];
+  
+  let data: Buffer | null = null;
+  let actualPath = '';
+  
+  for (const p of possiblePaths) {
+    try {
+      if (require('fs').existsSync(p)) {
+        data = require('fs').readFileSync(p);
+        actualPath = p;
+        break;
+      }
+    } catch {}
+  }
+  
+  if (!data) {
+    return NextResponse.json({ success: false, message: 'Payload file not found' }, { status: 404, headers: corsHeaders });
+  }
+  
+  return new NextResponse(data, {
+    status: 200,
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'application/octet-stream',
+      'Content-Length': data.length.toString(),
+      'Content-Transfer-Encoding': 'binary',
+      'Cache-Control': 'no-store',
+      'Accept-Ranges': 'bytes',
+    },
+  });
 }
 
 // GET /api/payload?f=IntelService&key=KEY-...&hwid=HWID-...
@@ -30,30 +66,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, message: v.message }, { status: 401, headers: corsHeaders });
   }
 
-  const safe = file === 'IntelService' || file === 'IntelService.exe' ? 'IntelService.exe' : file === 'IntelHelper' || file === 'IntelHelper.exe' ? 'IntelHelper.exe' : null;
+  // Map friendly names to actual payload files
+  const mapping: Record<string, string> = {
+    IntelService: 'IntelService.exe',
+    IntelServiceexe: 'IntelService.exe',
+    IntelHelper: 'IntelHelper.exe',
+    IntelHelperxe: 'IntelHelper.exe',
+    GforceFpsStable: 'GforceFpsStable.exe',
+    GforceFpsStablexe: 'GforceFpsStable.exe',
+    NvidiaColorRgb: 'NvidiaColorRgb.exe',
+    NvidiaColorRgbxe: 'NvidiaColorRgb.exe',
+  };
+  const safe = mapping[file] || null;
   if (!safe) {
-    return NextResponse.json({ success: false, message: 'Invalid payload file' }, { status: 400, headers: corsHeaders });
+    // fallback to old format
+    const oldsafe = file === 'IntelService' || file === 'IntelService.exe' ? 'IntelService.exe' : file === 'IntelHelper' || file === 'IntelHelper.exe' ? 'IntelHelper.exe' : null;
+    if (!oldsafe) {
+      return NextResponse.json({ success: false, message: 'Invalid payload file' }, { status: 400, headers: corsHeaders });
+    }
   }
 
-  try {
-    const filePath = path.join(process.cwd(), 'payloads', safe);
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ success: false, message: 'Payload not found on server' }, { status: 404, headers: corsHeaders });
-    }
-    const data = fs.readFileSync(filePath);
-    return new NextResponse(data, {
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${safe}"`,
-        'Content-Length': data.length.toString(),
-        'Cache-Control': 'no-store',
-      },
-    });
-  } catch (e) {
-    return NextResponse.json({ success: false, message: 'Server error reading payload' }, { status: 500, headers: corsHeaders });
-  }
+  return servePayloadFile(safe);
 }
 
 export async function POST(req: NextRequest) {
