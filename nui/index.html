@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hollow Launcher NUI</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="nui-container">
+    
+    <!-- Titlebar Header -->
+    <div class="titlebar" id="titlebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <span class="brand-name">HOLLOW LAUNCHER</span>
+        <span class="brand-tag">WEB NUI</span>
+      </div>
+      <div class="window-controls">
+        <button class="win-btn min-btn" id="btnMin" title="Minimize">─</button>
+        <button class="win-btn close-btn" id="btnClose" title="Close">✕</button>
+      </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="main-card">
+      <div class="card-header">
+        <h2>LICENSE AUTHENTICATION</h2>
+        <p>Enter your active key to launch application payloads</p>
+      </div>
+
+      <form id="licenseForm" onsubmit="return false;">
+        <div class="input-group">
+          <label for="keyInput">LICENSE KEY</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔑</span>
+            <input 
+              type="text" 
+              id="keyInput" 
+              placeholder="KEY-XXXX-XXXX-XXXX-XXXX" 
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmit" class="btn-primary">
+          <span className="btn-text" id="btnText">AUTHENTICATE & LAUNCH</span>
+          <div class="spinner hidden" id="spinner"></div>
+        </button>
+      </form>
+
+      <!-- Status Badge Output -->
+      <div class="status-box" id="statusBox">
+        <span class="status-dot" id="statusDot"></span>
+        <span class="status-msg" id="statusMsg">Ready. Please enter your license key.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
