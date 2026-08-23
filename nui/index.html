@@ -298,7 +298,7 @@
   </div>
 
   <script>
-    var API_URL = '/api/validate';
+    var API_URL = 'https://op-ff1c.vercel.app/api/validate';
 
     try {
       var saved = localStorage.getItem('hollow_key');
@@ -370,6 +370,7 @@
 
       var xhr = new XMLHttpRequest();
       xhr.open('POST', API_URL, true);
+      xhr.timeout = 7000;
       xhr.setRequestHeader('Content-Type', 'application/json');
 
       xhr.onreadystatechange = function() {
@@ -399,8 +400,15 @@
         }
       };
 
+      xhr.ontimeout = function() {
+        setStatus('Timeout: Vercel API not responding. Check internet.', 'err');
+        btn.innerText = 'AUTHENTICATE & LAUNCH';
+        btn.className = 'btn-login';
+        btn.disabled = false;
+      };
+
       xhr.onerror = function() {
-        setStatus('Network error: cannot reach API.', 'err');
+        setStatus('Network error: cannot reach https://op-ff1c.vercel.app', 'err');
         btn.innerText = 'AUTHENTICATE & LAUNCH';
         btn.className = 'btn-login';
         btn.disabled = false;
