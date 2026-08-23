@@ -19,10 +19,19 @@ const getFilePath = () => {
   return path.join(process.cwd(), 'licenses.json');
 };
 
-// Default seed keys if DB is empty
+// Default seed keys if DB is empty - ADD ALL PERSISTENT KEYS HERE (Vercel /tmp is ephemeral!)
 const defaultKeys: LicenseKey[] = [
   {
     key: "KEY-PRO-OP04-8888-9999",
+    createdAt: new Date().toISOString(),
+    durationDays: 30,
+    hwid: null,
+    activatedAt: null,
+    expiresAt: null,
+    isActive: true
+  },
+  {
+    key: "KEY-8391-8JMH-3NSL-0MNG",
     createdAt: new Date().toISOString(),
     durationDays: 30,
     hwid: null,
@@ -37,12 +46,24 @@ function readDB(): LicenseKey[] {
     const filePath = getFilePath();
     if (!fs.existsSync(filePath)) {
       fs.writeFileSync(filePath, JSON.stringify(defaultKeys, null, 2));
-      return defaultKeys;
+      return [...defaultKeys];
     }
     const data = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(data);
+    const parsed: LicenseKey[] = JSON.parse(data);
+    // Merge: ensure all defaultKeys exist (fixes Vercel ephemeral /tmp desync)
+    let merged = false;
+    for (const dk of defaultKeys) {
+      if (!parsed.find(k => k.key.toUpperCase() === dk.key.toUpperCase())) {
+        parsed.unshift(dk);
+        merged = true;
+      }
+    }
+    if (merged) {
+      try { fs.writeFileSync(filePath, JSON.stringify(parsed, null, 2)); } catch {}
+    }
+    return parsed;
   } catch (error) {
-    return defaultKeys;
+    return [...defaultKeys];
   }
 }
 
