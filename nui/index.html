@@ -9,8 +9,6 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      -ms-user-select: none;
-      user-select: none;
       font-family: 'Segoe UI', Tahoma, sans-serif;
     }
 
@@ -45,6 +43,8 @@
       -ms-flex-pack: justify;
       justify-content: space-between;
       padding: 0 16px;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     .brand {
@@ -112,7 +112,7 @@
 
     /* ─── MAIN BODY ─── */
     .body {
-      padding: 28px 32px;
+      padding: 24px 30px;
       display: -ms-flexbox;
       display: flex;
       -ms-flex-direction: column;
@@ -127,37 +127,75 @@
       letter-spacing: 0.3px;
       color: #FFFFFF;
       margin-bottom: 4px;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     .section-sub {
       font-size: 11px;
       color: #6B7394;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
+      -ms-user-select: none;
+      user-select: none;
     }
 
-    /* ─── INPUT ─── */
+    /* ─── INPUT & PASTE ROW ─── */
     .label {
       font-size: 10px;
       font-weight: 700;
       letter-spacing: 1px;
       color: #8892B8;
       margin-bottom: 6px;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+    .input-row {
+      display: -ms-flexbox;
+      display: flex;
+      width: 100%;
+      height: 42px;
     }
 
     .input-box {
-      width: 100%;
+      -ms-flex: 1;
+      flex: 1;
       height: 42px;
       background: #1C2035;
       border: 1px solid #333A55;
+      border-right: none;
       padding: 0 14px;
       color: #FFFFFF;
       font-size: 13px;
       font-weight: 600;
       outline: none;
-      border-radius: 0px;
+      -ms-user-select: text !important;
+      user-select: text !important;
+      cursor: text !important;
     }
 
     .input-box:focus {
+      border-color: #5865F2;
+    }
+
+    .btn-paste {
+      width: 75px;
+      height: 42px;
+      background: #252D4A;
+      border: 1px solid #333A55;
+      color: #7289DA;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      -ms-user-select: none;
+      user-select: none;
+      transition: background 0.15s;
+    }
+
+    .btn-paste:hover {
+      background: #333D66;
+      color: #FFFFFF;
       border-color: #5865F2;
     }
 
@@ -172,7 +210,9 @@
       font-weight: 700;
       letter-spacing: 0.6px;
       cursor: pointer;
-      margin-top: 16px;
+      margin-top: 14px;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     .btn-login:hover {
@@ -190,11 +230,13 @@
 
     /* ─── STATUS BAR ─── */
     .status-bar {
-      margin-top: 14px;
+      margin-top: 12px;
       display: -ms-flexbox;
       display: flex;
       -ms-flex-align: center;
       align-items: center;
+      -ms-user-select: none;
+      user-select: none;
     }
 
     .status-dot {
@@ -240,23 +282,24 @@
       <div class="section-sub">Enter your active key to launch application</div>
 
       <div class="label">LICENSE KEY</div>
-      <input type="text" class="input-box" id="keyInput" placeholder="KEY-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" />
+      <div class="input-row">
+        <input type="text" class="input-box" id="keyInput" placeholder="KEY-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" />
+        <button type="button" class="btn-paste" onclick="pasteClipboard()">PASTE</button>
+      </div>
 
       <button class="btn-login" id="btnSubmit" onclick="doLogin()">AUTHENTICATE &amp; LAUNCH</button>
 
       <div class="status-bar">
         <span class="status-dot" id="sDot"></span>
-        <span class="status-text" id="sMsg">Ready. Enter your license key.</span>
+        <span class="status-text" id="sMsg">Ready. Enter or paste your license key.</span>
       </div>
     </div>
 
   </div>
 
   <script>
-    // API base URL - update to your Vercel domain when deployed
     var API_URL = '/api/validate';
 
-    // Try loading saved key
     try {
       var saved = localStorage.getItem('hollow_key');
       if (saved) document.getElementById('keyInput').value = saved;
@@ -268,6 +311,33 @@
       dot.className = 'status-dot' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
       txt.className = 'status-text' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
       txt.innerText = msg;
+    }
+
+    function pasteClipboard() {
+      var input = document.getElementById('keyInput');
+      try {
+        if (window.clipboardData && window.clipboardData.getData) {
+          var clipText = window.clipboardData.getData('Text');
+          if (clipText) {
+            input.value = clipText.replace(/^\s+|\s+$/g, '');
+            input.focus();
+            setStatus('Key pasted from clipboard!', '');
+            return;
+          }
+        }
+      } catch(e) {}
+
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          navigator.clipboard.readText().then(function(clipText) {
+            if (clipText) {
+              input.value = clipText.replace(/^\s+|\s+$/g, '');
+              input.focus();
+              setStatus('Key pasted from clipboard!', '');
+            }
+          }).catch(function() {});
+        }
+      } catch(e2) {}
     }
 
     function getHWID() {
@@ -298,7 +368,6 @@
       var hwid = getHWID();
       var payload = JSON.stringify({ key: key, hwid: hwid });
 
-      // Use XMLHttpRequest for IE11 compatibility
       var xhr = new XMLHttpRequest();
       xhr.open('POST', API_URL, true);
       xhr.setRequestHeader('Content-Type', 'application/json');
@@ -348,7 +417,6 @@
       xhr.send(payload);
     }
 
-    // Close / Minimize
     document.getElementById('btnClose').onclick = function() {
       try { window.external.notify('close'); } catch(e) { window.close(); }
     };
@@ -356,7 +424,6 @@
       try { window.external.notify('minimize'); } catch(e) {}
     };
 
-    // Enter key submits
     document.getElementById('keyInput').onkeydown = function(e) {
       if ((e.keyCode || e.which) === 13) doLogin();
     };

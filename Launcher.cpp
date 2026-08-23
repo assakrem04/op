@@ -290,6 +290,14 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmd, int nShow) {
 
     MSG msg;
     while (GetMessageW(&msg, NULL, 0, 0)) {
+        IOleInPlaceActiveObject* pActiveObj = NULL;
+        if (pBrowser && SUCCEEDED(pBrowser->QueryInterface(IID_IOleInPlaceActiveObject, (void**)&pActiveObj))) {
+            if (pActiveObj->TranslateAccelerator(&msg) == S_OK) {
+                pActiveObj->Release();
+                continue;
+            }
+            pActiveObj->Release();
+        }
         TranslateMessage(&msg);
         DispatchMessageW(&msg);
     }
