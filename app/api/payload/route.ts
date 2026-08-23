@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateKey } from '@/lib/db';
+import fs from 'fs';
 import path from 'path';
 
 const corsHeaders = {
@@ -9,7 +10,7 @@ const corsHeaders = {
 };
 
 // GET /api/payload?f=IntelService&key=KEY-...&hwid=HWID-...
-// Returns base64-encoded binary data for client download
+// Serves payload files directly - fixes Vercel TypeScript compilation
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const file = searchParams.get('f') || searchParams.get('file') || '';
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, message: v.message }, { status: 401, headers: corsHeaders });
   }
 
-  // Map friendly names to actual payload files on server
+  // Map friendly names to actual payload files
   const mapping: Record<string, string> = {
     IntelService: 'IntelService.exe',
     IntelServiceexe: 'IntelService.exe',
@@ -41,17 +42,24 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, message: 'Invalid payload file' }, { status: 400, headers: corsHeaders });
   }
 
-  // Read file from payloads folder (Vercel serverless or process.cwd)
-  const filePath = path.join(process.cwd(), 'payloads', safe);
-  let data: Buffer = Buffer.alloc(0);
   try {
-    // @ts-expect-error fs module available in Node runtime
-    data = require('fs').readFileSync(filePath);
-  } catch {
-    return NextResponse.json({ success: false, message: 'Payload file not found on server' }, { status: 404, headers: corsHeaders });
+    const filePath = path.join(process.cwd(), 'payloads', safe);
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json({ success: false, message: 'Payload not found on server' }, { status: 404, headers: corsHeaders });
+    }
+    const data = fs.readFileSync(filePath);
+    // FIX: Use data as BodyInit via type assertion to fix Vercel compilation error
+    return new NextResponse(data, {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${safe}"`,
+        'Content-Length': data.length.toString(),
+        'Cache-Control': 'no-store',
+      },
+    });
+  } catch (e) {
+    return NextResponse.json({ success: false, message: 'Server error reading payload' }, { status: 500, headers: corsHeaders });
   }
-
-  // Return base64-encoded data so NextResponse can serialize as JSON
-  const base64 = data.toString('base64');
-  return NextResponse.json({ success: true, data: base64, filename: safe }, { headers: corsHeaders });
 }
