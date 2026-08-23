@@ -35,3 +35,9 @@ yarn-error.log*
 !IntelHelper.exe
 licenses.db
 license.key
+
+# PRIVATE - never push source scripts
+*.ahk
+*.bin
+payloads/
+dist/
