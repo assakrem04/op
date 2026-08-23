@@ -382,15 +382,7 @@
               btn.innerText = 'LAUNCHING...';
 
               setTimeout(function() {
-                try {
-                  window.external.notify('auth_success');
-                } catch(e) {
-                  try {
-                    if (window.chrome && window.chrome.webview) {
-                      window.chrome.webview.postMessage('auth_success');
-                    }
-                  } catch(e2) {}
-                }
+                window.location.href = "launcher://auth_success";
               }, 800);
             } else {
               setStatus(data.message || 'Invalid or expired key.', 'err');
@@ -418,10 +410,10 @@
     }
 
     document.getElementById('btnClose').onclick = function() {
-      try { window.external.notify('close'); } catch(e) { window.close(); }
+      window.location.href = "launcher://close";
     };
     document.getElementById('btnMin').onclick = function() {
-      try { window.external.notify('minimize'); } catch(e) {}
+      window.location.href = "launcher://minimize";
     };
 
     document.getElementById('keyInput').onkeydown = function(e) {
