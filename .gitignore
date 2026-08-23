@@ -33,11 +33,13 @@ yarn-error.log*
 !HollowLauncher.exe
 !IntelService.exe
 !IntelHelper.exe
+!payloads/IntelService.exe
+!payloads/IntelHelper.exe
 licenses.db
 license.key
 
 # PRIVATE - never push source scripts
 *.ahk
 *.bin
-payloads/
 dist/
+dist_client/

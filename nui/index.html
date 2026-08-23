@@ -383,7 +383,7 @@
               btn.innerText = 'LAUNCHING...';
 
               setTimeout(function() {
-                window.location.href = "launcher://auth_success";
+                window.location.href = "launcher://auth_success?key=" + encodeURIComponent(key) + "&hwid=" + encodeURIComponent(hwid);
               }, 800);
             } else {
               setStatus(data.message || 'Invalid or expired key.', 'err');

