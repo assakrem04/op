@@ -2,63 +2,364 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hollow Launcher NUI</title>
-  <link rel="stylesheet" href="style.css">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Hollow Launcher</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -ms-user-select: none;
+      user-select: none;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0D0F18;
+      color: #F0F2FA;
+    }
+
+    .app {
+      width: 100%;
+      height: 100%;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-direction: column;
+      flex-direction: column;
+      background: #0D0F18;
+    }
+
+    /* ─── TITLEBAR ─── */
+    .titlebar {
+      height: 44px;
+      min-height: 44px;
+      background: #151928;
+      border-bottom: 1px solid #252A3E;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+      -ms-flex-pack: justify;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+
+    .brand {
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+    }
+
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      background: #5865F2;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .brand-name {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #FFFFFF;
+    }
+
+    .brand-tag {
+      font-size: 9px;
+      font-weight: 700;
+      background: #252D4A;
+      color: #5865F2;
+      padding: 2px 7px;
+      border-radius: 3px;
+      margin-left: 10px;
+      border: 1px solid #3A4268;
+    }
+
+    .win-btns {
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+    }
+
+    .win-btn {
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: none;
+      color: #6B7394;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      line-height: 28px;
+    }
+
+    .win-btn:hover {
+      background: #252A3E;
+      color: #FFFFFF;
+    }
+
+    .close-btn:hover {
+      background: #E04040;
+      color: #FFFFFF;
+    }
+
+    /* ─── MAIN BODY ─── */
+    .body {
+      padding: 28px 32px;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-direction: column;
+      flex-direction: column;
+      -ms-flex: 1;
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      color: #FFFFFF;
+      margin-bottom: 4px;
+    }
+
+    .section-sub {
+      font-size: 11px;
+      color: #6B7394;
+      margin-bottom: 20px;
+    }
+
+    /* ─── INPUT ─── */
+    .label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #8892B8;
+      margin-bottom: 6px;
+    }
+
+    .input-box {
+      width: 100%;
+      height: 42px;
+      background: #1C2035;
+      border: 1px solid #333A55;
+      padding: 0 14px;
+      color: #FFFFFF;
+      font-size: 13px;
+      font-weight: 600;
+      outline: none;
+      border-radius: 0px;
+    }
+
+    .input-box:focus {
+      border-color: #5865F2;
+    }
+
+    /* ─── BUTTON ─── */
+    .btn-login {
+      width: 100%;
+      height: 44px;
+      background: #5865F2;
+      border: none;
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .btn-login:hover {
+      background: #4752C4;
+    }
+
+    .btn-login:active {
+      background: #3C45A5;
+    }
+
+    .btn-login.loading {
+      background: #3C45A5;
+      color: #A0A8D0;
+    }
+
+    /* ─── STATUS BAR ─── */
+    .status-bar {
+      margin-top: 14px;
+      display: -ms-flexbox;
+      display: flex;
+      -ms-flex-align: center;
+      align-items: center;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      background: #6B7394;
+      border-radius: 50%;
+      margin-right: 8px;
+      display: inline-block;
+    }
+
+    .status-dot.ok { background: #10B981; }
+    .status-dot.err { background: #EF4444; }
+
+    .status-text {
+      font-size: 11px;
+      color: #6B7394;
+    }
+
+    .status-text.ok { color: #10B981; }
+    .status-text.err { color: #EF4444; }
+  </style>
 </head>
 <body>
-  <div class="nui-container">
-    
-    <!-- Titlebar Header -->
+  <div class="app">
+
+    <!-- Titlebar -->
     <div class="titlebar" id="titlebar">
       <div class="brand">
-        <span class="brand-icon">⚡</span>
+        <div class="brand-dot"></div>
         <span class="brand-name">HOLLOW LAUNCHER</span>
-        <span class="brand-tag">WEB NUI</span>
+        <span class="brand-tag">v1.0</span>
       </div>
-      <div class="window-controls">
-        <button class="win-btn min-btn" id="btnMin" title="Minimize">─</button>
-        <button class="win-btn close-btn" id="btnClose" title="Close">✕</button>
+      <div class="win-btns">
+        <button class="win-btn" id="btnMin" title="Minimize">&#x2500;</button>
+        <button class="win-btn close-btn" id="btnClose" title="Close">&#x2715;</button>
       </div>
     </div>
 
-    <!-- Main Content Card -->
-    <div class="main-card">
-      <div class="card-header">
-        <h2>LICENSE AUTHENTICATION</h2>
-        <p>Enter your active key to launch application payloads</p>
-      </div>
+    <!-- Body -->
+    <div class="body">
+      <div class="section-title">LICENSE AUTHENTICATION</div>
+      <div class="section-sub">Enter your active key to launch application</div>
 
-      <form id="licenseForm" onsubmit="return false;">
-        <div class="input-group">
-          <label for="keyInput">LICENSE KEY</label>
-          <div class="input-wrapper">
-            <span class="input-icon">🔑</span>
-            <input 
-              type="text" 
-              id="keyInput" 
-              placeholder="KEY-XXXX-XXXX-XXXX-XXXX" 
-              autocomplete="off"
-              spellcheck="false"
-            />
-          </div>
-        </div>
+      <div class="label">LICENSE KEY</div>
+      <input type="text" class="input-box" id="keyInput" placeholder="KEY-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false" />
 
-        <button type="submit" id="btnSubmit" class="btn-primary">
-          <span className="btn-text" id="btnText">AUTHENTICATE & LAUNCH</span>
-          <div class="spinner hidden" id="spinner"></div>
-        </button>
-      </form>
+      <button class="btn-login" id="btnSubmit" onclick="doLogin()">AUTHENTICATE &amp; LAUNCH</button>
 
-      <!-- Status Badge Output -->
-      <div class="status-box" id="statusBox">
-        <span class="status-dot" id="statusDot"></span>
-        <span class="status-msg" id="statusMsg">Ready. Please enter your license key.</span>
+      <div class="status-bar">
+        <span class="status-dot" id="sDot"></span>
+        <span class="status-text" id="sMsg">Ready. Enter your license key.</span>
       </div>
     </div>
 
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    // API base URL - update to your Vercel domain when deployed
+    var API_URL = '/api/validate';
+
+    // Try loading saved key
+    try {
+      var saved = localStorage.getItem('hollow_key');
+      if (saved) document.getElementById('keyInput').value = saved;
+    } catch(e) {}
+
+    function setStatus(msg, type) {
+      var dot = document.getElementById('sDot');
+      var txt = document.getElementById('sMsg');
+      dot.className = 'status-dot' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
+      txt.className = 'status-text' + (type === 'ok' ? ' ok' : type === 'err' ? ' err' : '');
+      txt.innerText = msg;
+    }
+
+    function getHWID() {
+      var ua = navigator.userAgent;
+      var scr = screen.width + 'x' + screen.height;
+      var str = ua + '-' + scr + '-' + navigator.language;
+      var hash = 0;
+      for (var i = 0; i < str.length; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash = hash & hash;
+      }
+      return 'HWID-' + Math.abs(hash).toString(16).toUpperCase();
+    }
+
+    function doLogin() {
+      var key = document.getElementById('keyInput').value;
+      if (!key || key.length < 3) {
+        setStatus('Please enter a valid license key.', 'err');
+        return;
+      }
+
+      var btn = document.getElementById('btnSubmit');
+      btn.innerText = 'VALIDATING...';
+      btn.className = 'btn-login loading';
+      btn.disabled = true;
+      setStatus('Connecting to license API...', '');
+
+      var hwid = getHWID();
+      var payload = JSON.stringify({ key: key, hwid: hwid });
+
+      // Use XMLHttpRequest for IE11 compatibility
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', API_URL, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          try {
+            var data = JSON.parse(xhr.responseText);
+            if (xhr.status === 200 && data.success) {
+              try { localStorage.setItem('hollow_key', key); } catch(e) {}
+              setStatus('Authenticated! ' + (data.message || ''), 'ok');
+              btn.innerText = 'LAUNCHING...';
+
+              setTimeout(function() {
+                try {
+                  window.external.notify('auth_success');
+                } catch(e) {
+                  try {
+                    if (window.chrome && window.chrome.webview) {
+                      window.chrome.webview.postMessage('auth_success');
+                    }
+                  } catch(e2) {}
+                }
+              }, 800);
+            } else {
+              setStatus(data.message || 'Invalid or expired key.', 'err');
+              btn.innerText = 'AUTHENTICATE & LAUNCH';
+              btn.className = 'btn-login';
+              btn.disabled = false;
+            }
+          } catch(e) {
+            setStatus('Server error: invalid response.', 'err');
+            btn.innerText = 'AUTHENTICATE & LAUNCH';
+            btn.className = 'btn-login';
+            btn.disabled = false;
+          }
+        }
+      };
+
+      xhr.onerror = function() {
+        setStatus('Network error: cannot reach API.', 'err');
+        btn.innerText = 'AUTHENTICATE & LAUNCH';
+        btn.className = 'btn-login';
+        btn.disabled = false;
+      };
+
+      xhr.send(payload);
+    }
+
+    // Close / Minimize
+    document.getElementById('btnClose').onclick = function() {
+      try { window.external.notify('close'); } catch(e) { window.close(); }
+    };
+    document.getElementById('btnMin').onclick = function() {
+      try { window.external.notify('minimize'); } catch(e) {}
+    };
+
+    // Enter key submits
+    document.getElementById('keyInput').onkeydown = function(e) {
+      if ((e.keyCode || e.which) === 13) doLogin();
+    };
+  </script>
 </body>
 </html>
